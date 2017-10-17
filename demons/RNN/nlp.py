@@ -62,80 +62,9 @@ class PTBModel(object):
         #print(logits)
         
         loss = tf.contrib.seq2seq.sequence_loss(
+                logits, self.targets, tf.ones([4,3], dtype = tf.float32)
                 )
         
         
 with tf.variable_scope("test", reuse = True):        
     ptb = PTBModel(False,100,20)
-'''
-train_data, valid_data, test_data, _ = reader.ptb_raw_data(DATA_PATH)
-print(len(train_data))
-print(train_data[:100])
-'''
-
-
-'''
-raw_data = [4, 3, 2, 1, 0, 5, 6, 1, 1, 1, 1, 0, 3, 4, 1]
-batch_size = 3
-num_steps = 2
-x, y = reader.ptb_producer(raw_data, batch_size, num_steps)
-with tf.Session() as session:
-    coord = tf.train.Coordinator()
-    tf.train.start_queue_runners(session, coord=coord)
-    try:
-      xval, yval = session.run([x, y])
-      print(xval, yval)
-      xval, yval = session.run([x, y])
-      print(xval, yval)
-
-    finally:
-      coord.request_stop()
-      coord.join()
-      '''
-
-'''      
-input_ids = tf.placeholder(dtype=tf.int32, shape=[None])
-
-embedding = tf.Variable(np.identity(5, dtype=np.int32))
-input_embedding = tf.nn.embedding_lookup(embedding, input_ids)
-
-sess = tf.InteractiveSession()
-sess.run(tf.global_variables_initializer())
-print(embedding.eval())
-print(sess.run(input_embedding, feed_dict={input_ids:[1, 2, 3, 0, 3, 2, 1]}))
-'''
-'''
-t1 = [[1, 2, 3, 0], [4, 5, 6, 0], [7, 8, 9, 0]]  
-t2 = [[10, 11, 12, 0], [13, 14, 15, 0], [16, 17, 18, 0]]  
-
-with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
-    print(sess.run(tf.concat([t1, t2], 0) ))
-    print(sess.run(tf.concat([t1, t2], 1) ))
-    '''
-'''   
-a = [
-        [[1,2],
-         [3,4],
-         [5,6]
-                ],
-        [[7,8],
-         [9,10],
-         [11,12]
-                ],
-        [[13,14],
-         [15,16],
-         [17,18]
-                ],
-        [[19,20],
-         [21,22],
-         [23,24]
-                
-        ]
-        ]
-
-with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
-    print(sess.run(tf.reshape(tf.concat(a, 1), [-1, 2])))
-    print(sess.run(tf.reshape(a, [-1, 2])))
-    '''

@@ -61,10 +61,62 @@ class PTBModel(object):
         logits = tf.matmul(output, weight) + bias
         #print(logits)
         
-        loss = tf.contrib.seq2seq.sequence_loss(
+        self.cost = tf.contrib.seq2seq.sequence_loss(
                 logits, self.targets, tf.ones([4,3], dtype = tf.float32)
                 )
+        self.final_state = state
         
+        if not is_training: return
+        
+        trainable_variables = tf.trainable_variables()
+        grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, trainable_variables), MAX_GRAD_NORM)
+        
+        optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)
+        self.train_op = optimizer.apply_gradients(zip(grads, trainable_variables))
+    
+def run_epoch(session, model, data, train_op, output_log):
+    total_costs = 0.0
+    iters = 0
+    state = session.run(model.initial_state)
+    
+    for step, (x, y) in enumerate(
+            )
+            
         
 with tf.variable_scope("test", reuse = True):        
     ptb = PTBModel(False,100,20)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

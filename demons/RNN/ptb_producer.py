@@ -10,6 +10,29 @@ num_steps = 2
 x, y = reader.ptb_producer(raw_data, batch_size, num_steps)
 with tf.Session() as session:
     coord = tf.train.Coordinator()
+    '''
+    这里使用coord可以主动控制queue的结束在session之前，否则直接销毁session会出异常
+    '''
+    tf.train.start_queue_runners(session, coord=coord)
+    try:
+        '''
+        queue会循环读取raw_data，如果读取到结尾，会从开头继续读取
+        '''
+      xval, yval = session.run([x, y])
+      print(xval, yval)
+      xval, yval = session.run([x, y])
+      print(xval, yval)
+      xval, yval = session.run([x, y])
+      print(xval, yval)
+    finally:
+      coord.request_stop()
+      coord.join()  
+
+'''
+重启queue会重新从raw_data的起始读取
+'''
+with tf.Session() as session:
+    coord = tf.train.Coordinator()
     tf.train.start_queue_runners(session, coord=coord)
     try:
       xval, yval = session.run([x, y])

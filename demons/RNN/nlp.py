@@ -4,7 +4,7 @@ Created on Sat Oct 14 18:29:50 2017
 
 @author: Administrator
 """
-from tensorflow.tutorials.rnn.ptb import reader
+from tensorflow.models.rnn.ptb import reader
 import tensorflow as tf
 import numpy as np
 
@@ -62,7 +62,7 @@ class PTBModel(object):
         #print(logits)
         
         self.cost = tf.contrib.seq2seq.sequence_loss(
-                logits, self.targets, tf.ones([4,3], dtype = tf.float32)
+                logits, self.targets, tf.ones([batch_size,VOCAB_SIZE], dtype = tf.float32)
                 )
         self.final_state = state
         
@@ -79,14 +79,44 @@ def run_epoch(session, model, data, train_op, output_log):
     iters = 0
     state = session.run(model.initial_state)
     
-    for step, (x, y) in enumerate(
-            )
-            
+    x, y = reader.ptb_producer(data, model.batch_size, model.num_steps)
+    coord = tf.train.Coordinator()
+    tf.train.start_queue_runners(session, coord=coord)
+    for step in range((len(data)/model.batch_size - model.num_steps) / 2 + 1):
+        cost, state, _ = session.run([model.cost, model.final_state, train_op], 
+                                     feed_dict = {model.input_data : x, model.targets : y, model.initial_state : state})
+        total_costs += cost
+        iters += model.num_steps
         
-with tf.variable_scope("test", reuse = True):        
-    ptb = PTBModel(False,100,20)
+        if output_log and step % 100 == 0:
+            print("After %d steps, perplexity is %.3f" % (step, np.exp(total_costs/iters)))
+            
+    coord.request_stop()
+    coord.join()
+    return np.exp(total_costs/iters)     
+            
+
+def main(_):
+    train_data, valid_data, test_data, _ = reader.ptb_raw_data(DATA_PATH) 
+    initializer = tf.random_uniform_initializer(-0.05, 0.05)
     
-    
+    with tf.variable_scope("lamgiage_model", reuse = None, initializer = initializer):
+        train_model = PTBModel(True, TRAIN_BATCH_SIZE, TRAIN_NUM_STEP)
+        
+    with tf.variable_scope("lamgiage_model", reuse = True, initializer = initializer):
+        eval_model = PTBModel(True, TRAIN_BATCH_SIZE, TRAIN_NUM_STEP)
+        
+    with tf.Session() as session:
+        tf.initialize_all_variables().run()
+        valid_perplexity = run_epoch(session, train_model, train_data, train_model.train_op, True)
+        for i in range(NUM_EPOCH):
+            print("Epoch : %d validation Perplexity: %.3f" % (i + 1, valid_perplexity))
+            
+        test_perplexity = run_epoch(session, eval_model, test_data, tf.no_op(), False)
+        print("test Perplexity: %.3f" % test_perplexity)
+        
+if __name__ == '__main__':
+    tf.app.run()
     
     
     

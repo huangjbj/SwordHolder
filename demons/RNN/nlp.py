@@ -23,11 +23,32 @@ NUM_EPOCH = 2
 KEEP_PROB = 0.5
 MAX_GRAD_NORM = 5
 
+
+def seq2seq(encoder_inputs,decoder_inputs,cell,num_encoder_symbols,num_decoder_symbols,embedding_size):
+	encoder_inputs = tf.unstack(encoder_inputs, axis=0)
+	decoder_inputs = tf.unstack(decoder_inputs, axis=0)
+	results,states=tf.contrib.legacy_seq2seq.embedding_rnn_seq2seq(
+    encoder_inputs,
+    decoder_inputs,
+    cell,
+    num_encoder_symbols,
+    num_decoder_symbols,
+    embedding_size,
+    output_projection=None,
+    feed_previous=False,
+    dtype=None,
+    scope=None
+    )
+    
+	return results
+
 class PTBModel(object):
     def __init__(self, is_training, batch_size, num_steps):
         self.batch_size = batch_size
         self.num_steps = num_steps
-        
+        '''
+        输入，目标，RNN定义
+        '''
         self.input_data = tf.placeholder(tf.int32, [batch_size, num_steps])
         self.targets = tf.placeholder(tf.int32, [batch_size, num_steps])
         
@@ -38,10 +59,23 @@ class PTBModel(object):
         cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * NUM_LAYERS)
         
         self.initial_state = cell.zero_state(batch_size, tf.float32)
+        '''
+        输出和cost计算
+        '''
+        encoder_inputs = tf.unstack(self.input_data, axis = 0)
+        decoder_inputs = tf.unstack(self.targets, axis = 0)
+        
+        
+        '''
         embedding = tf.get_variable("embedding", [VOCAB_SIZE, HIDDEN_SIZE])
         inputs = tf.nn.embedding_lookup(embedding, self.input_data)
+        '''
         
-        if is_training: inputs = tf.nn.dropout(inputs, KEEP_PROB)
+        if is_training: 
+            encoder_inputs = tf.nn.dropout(encoder_inputs, KEEP_PROB)
+            decoder_inputs = tf.nn.dropout(decoder_inputs, KEEP_PROB)
+            
+        outputs = seq2seq(encoder_inputs, decoder_inputs, cell, VOCAB_SIZE, VOCAB_SIZE)
         
         outputs = []
         state = self.initial_state

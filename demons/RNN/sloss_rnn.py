@@ -26,8 +26,8 @@ train_encoder_inputs=np.ones(shape=[10,10],dtype=np.int32)
 train_decoder_inputs=np.ones(shape=[10,10],dtype=np.int32)
 train_weights=np.ones(shape=[10,10],dtype=np.float32)
 
-num_encoder_symbols=10
-num_decoder_symbols=10
+num_encoder_symbols=20
+num_decoder_symbols=20
 embedding_size=10
 
 cell=tf.nn.rnn_cell.BasicLSTMCell(10)
@@ -46,7 +46,8 @@ def seq2seq(encoder_inputs,decoder_inputs,cell,num_encoder_symbols,num_decoder_s
     feed_previous=False,
     dtype=None,
     scope=None
-)
+    )
+    
 	return results
 
 def get_loss(logits,targets,weights):
@@ -57,16 +58,18 @@ def get_loss(logits,targets,weights):
 	)
 	return loss
 
+tf.get_variable_scope().reuse_variables()
 results=seq2seq(encoder_inputs,decoder_inputs,cell,num_encoder_symbols,num_decoder_symbols,embedding_size)
 logits=tf.stack(results,axis=0)
 print(logits)
 loss=get_loss(logits,targets,weights)
 
 with tf.Session() as sess:
-	sess.run(tf.global_variables_initializer())
-	results_value=sess.run(results,feed_dict={encoder_inputs:train_encoder_inputs,decoder_inputs:train_decoder_inputs})
-	print(type(results_value[0]))
-	print(len(results_value))
-	cost = sess.run(loss, feed_dict={encoder_inputs: train_encoder_inputs, targets: train_decoder_inputs,
+    sess.run(tf.global_variables_initializer())
+    results_value=sess.run(results,feed_dict={encoder_inputs:train_encoder_inputs,decoder_inputs:train_decoder_inputs})
+    print(type(results_value[0]))
+    print(len(results_value))
+    cost = sess.run(loss, feed_dict={encoder_inputs: train_encoder_inputs, targets: train_decoder_inputs,
 	                                 weights:train_weights,decoder_inputs:train_decoder_inputs})
-	print(cost)
+    
+    print(cost)
